@@ -1,7 +1,7 @@
 import os
 
 from flask import Flask, jsonify, request, make_response
-from forms_validations import RegistrationForm, OptinalForm, get_errors_wtforms, UploadForm
+from forms_validations import RegistrationForm, OptinalForm, get_errors_wtforms, UploadForm, SelectedForm
 
 # init config
 os.environ['FLASK_APP'] = 'app.py'
@@ -16,20 +16,14 @@ app = Flask(__name__)
 def request_test():
     form = RegistrationForm(request.form)
 
-    if request.method == 'POST' and form.validate():
-        body = request.form
-        return jsonify(str("Successfully stored  " + str(body)))
+    if form.validate() and form.custom_validate_accept_tos(request.form, 'accept_tos'):
+        return make_response({"Successfully_stored": str(request.form)}, 200, headers_json)
     else:
-        # for fieldName, errorMessages in form.errors.items():
-        #     for err in errorMessages:
-        #         print(fieldName, err)
-        erros = get_errors_wtforms(form)
-        return make_response({'status_code': 400, 'erros': erros}, 400, headers_json)
+        return make_response({'status_code': 400, 'erros': get_errors_wtforms(form)}, 400, headers_json)
 
 
 @app.route("/upload", methods=["POST"])
 def request_upload():
-
     form = UploadForm(request.files)
     print(request.files)
 
@@ -41,8 +35,18 @@ def request_upload():
 
 @app.route("/field", methods=["POST"])
 def request_field():
-
     form = OptinalForm(request.form)
+    print(request.form)
+
+    if form.validate():
+        return make_response({"Successfully_stored": str(request.form)}, 200, headers_json)
+    else:
+        return make_response({'status_code': 400, 'erros': get_errors_wtforms(form)}, 400, headers_json)
+
+
+@app.route("/select", methods=["POST"])
+def request_select():
+    form = SelectedForm(request.form)
     print(request.form)
 
     if form.validate():

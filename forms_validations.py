@@ -1,10 +1,16 @@
-import os
-import re
-from pprint import pprint
 
 from werkzeug.datastructures import ImmutableMultiDict
-from werkzeug.sansio import request
-from wtforms import Form, BooleanField, StringField, PasswordField, validators, FileField, ValidationError
+
+from wtforms import (
+    Form,
+    BooleanField,
+    StringField,
+    PasswordField,
+    validators,
+    FileField,
+    SelectField,
+    IntegerField
+)
 
 list_extensions_allowed = ['pdf', 'doc', 'docx', 'odt', 'png', 'jpeg', 'jpg',
                            'PDF ', 'DOC', 'DOCX', 'ODT', 'PNG', 'JPEG', 'JPG']
@@ -14,12 +20,30 @@ class RegistrationForm(Form):
     username = StringField('Username', [validators.Length(min=4, max=25)])
     email = StringField('Email Address',
                         [validators.Length(min=6, max=35), validators.Email(message='Precisa de email pow!')])
+    age = IntegerField(
+        'age',
+        [
+            validators.number_range(min=1, max=99),
+            validators.DataRequired(message='This field is required. Is Integer')
+        ])
     password = PasswordField('New Password', [
         validators.DataRequired(),
         validators.EqualTo('confirm', message='Passwords must match')
     ])
     confirm = PasswordField('Repeat Password')
     accept_tos = BooleanField('I accept the TOS', [validators.DataRequired()])
+
+    def custom_validate_accept_tos(self, form: ImmutableMultiDict, name: str):
+        try:
+            field = form[name]
+        except KeyError:
+            raise ValueError('Set correct name field')
+
+        my_validation = ['yes', 'OK', 'VERY NICE', 'GOOD', 'NO', 'NOT']
+        if field not in my_validation:
+            self.accept_tos.errors.append("This is field accept_tos do no accept. Allowed: " + ', '.join(my_validation))
+            return False
+        return True
 
 
 class OptinalForm(Form):
@@ -53,6 +77,17 @@ class UploadForm(Form):
                 "This is field upload not extesion allowed. Allowed: " + ', '.join(list_extensions_allowed))
             return False
         return True
+
+
+class SelectedForm(Form):
+    username = StringField(
+        'Username',
+        [
+            validators.DataRequired(),
+            validators.Length(min=4, max=25)
+        ])
+    age = SelectField(label='Age', choices=['+18', '>18', '-18', '<18'], validate_choice=True)
+    print(age)
 
 
 def get_errors_wtforms(form) -> list:
