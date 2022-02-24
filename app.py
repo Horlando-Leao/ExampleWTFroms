@@ -1,7 +1,14 @@
 import os
 
-from flask import Flask, jsonify, request, make_response
-from forms_validations import RegistrationForm, OptinalForm, get_errors_wtforms, UploadForm, SelectedForm
+from flask import Flask, request, make_response
+from forms_validations import (
+    RegistrationForm,
+    OptinalForm,
+    get_errors_wtforms,
+    UploadForm,
+    SelectedForm,
+    CustomValidateForm
+)
 
 # init config
 os.environ['FLASK_APP'] = 'app.py'
@@ -45,11 +52,22 @@ def request_field():
 
 
 @app.route("/select", methods=["POST"])
-def request_select():
+def request_custom():
     form = SelectedForm(request.form)
     print(request.form)
 
     if form.validate():
+        return make_response({"Successfully_stored": str(request.form)}, 200, headers_json)
+    else:
+        return make_response({'status_code': 400, 'erros': get_errors_wtforms(form)}, 400, headers_json)
+
+
+@app.route("/custom", methods=["POST"])
+def request_select():
+    form = CustomValidateForm(request.form)
+    print(request.form)
+
+    if form.validate_custom():
         return make_response({"Successfully_stored": str(request.form)}, 200, headers_json)
     else:
         return make_response({'status_code': 400, 'erros': get_errors_wtforms(form)}, 400, headers_json)

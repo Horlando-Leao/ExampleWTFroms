@@ -1,4 +1,3 @@
-
 from werkzeug.datastructures import ImmutableMultiDict
 
 from wtforms import (
@@ -88,6 +87,28 @@ class SelectedForm(Form):
         ])
     age = SelectField(label='Age', choices=['+18', '>18', '-18', '<18'], validate_choice=True)
     print(age)
+
+
+class CustomValidateForm(Form):
+    username = StringField('Username', [validators.Length(min=4, max=25)])
+    email = StringField('Email Address', [validators.Length(min=6, max=35), validators.Email()])
+
+    def valida_gmail(self):
+        server: int = str(self.email.data).find('gmail')
+        if server != -1:
+            self.email.errors.append('email needs to be different from gmail')
+            return False
+        else:
+            return True
+
+    def validate_custom(self) -> bool:
+        validate = self.validate()
+        valida_gmail = self.valida_gmail()
+
+        if validate and valida_gmail:
+            return True
+        else:
+            return False
 
 
 def get_errors_wtforms(form) -> list:
