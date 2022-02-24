@@ -22,7 +22,7 @@ class RegistrationForm(Form):
     age = IntegerField(
         'age',
         [
-            validators.number_range(min=1, max=99),
+            validators.NumberRange(min=1, max=99),
             validators.DataRequired(message='This field is required. Is Integer')
         ])
     password = PasswordField('New Password', [
